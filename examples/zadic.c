@@ -43,13 +43,14 @@
 void usage(void)
 {
 	printf("\n");
-	printf("--noprompt         allows the program to end without prompting the user\n");
-	printf("--usealldevices    lists all usb devices instead of only driverless ones\n");
-	printf("--iface <num>      sets the interface number\n");
-	printf("--vid <num>        sets the VID number. You must put 0x infront of vid number\n");
-	printf("--pid <num>        sets the PID number. You must put 0x infront of pid number\n");
-	printf("--useinf           use supplied .inf if it exists in the correct directory\n");
-	printf("--create <desc>    create device even if USB device is not attached. Requires a description\n");
+	printf("--noprompt            allows the program to end without prompting the user\n");
+	printf("--usealldevices       lists all usb devices instead of only driverless ones\n");
+	printf("--iface <num>         sets the interface number\n");
+	printf("--vid <num>           sets the VID number. You must put 0x infront of vid number\n");
+	printf("--pid <num>           sets the PID number. You must put 0x infront of pid number\n");
+	printf("--useinf              use supplied .inf if it exists in the correct directory\n");
+	printf("--create <desc>       create device even if USB device is not attached. Requires a description\n");
+	printf("--drivertype <num>    sets the number of the USB driver type. From 0 to 3: {WinUSB, libusb0, libusbK, usbser}\n");
 	printf("\n");
 }
 
@@ -60,6 +61,7 @@ int __cdecl main(int argc, char *argv[])
 	struct wdi_device_info *device, *list;
 	char* path = "usb_driver";
 	static struct wdi_options_create_list cl_options = { 0 };
+	const char* driver_name[WDI_NB_DRIVERS - 1] = { "WinUSB", "libusb0", "libusbK", "usbser" };
 	static struct wdi_options_prepare_driver pd_options = { 0 };
 
 	static int prompt_flag = 1;
@@ -87,10 +89,11 @@ int __cdecl main(int argc, char *argv[])
 			{"help", no_argument, 0, 'd'},
 			{"verbose", no_argument, &verbose_flag, 0},
 			{"create", required_argument,0, 'e'},
+			{"drivertype", required_argument,0, 'f'},
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "abc:d:e:",long_options, &option_index);
+		c = getopt_long(argc, argv, "abc:d:e:f:",long_options, &option_index);
 		//  Detect the end of the options.
 		if (c == -1)
 			break;
@@ -127,6 +130,10 @@ int __cdecl main(int argc, char *argv[])
 			break;
 		case 'e': //create requires a description argument
 			desc = optarg;
+			break;
+		case 'f': //set driver type
+			pd_options.driver_type = (unsigned char)atoi(optarg);
+			printf("OPT: driver type: %s\n", driver_name[pd_options.driver_type]);
 			break;
 		default:
 			usage();
